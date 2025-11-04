@@ -1,0 +1,18 @@
+{
+   "name": "Open Link In Another Window",
+   "description": "Open links in a chosen window from the link context menu",
+   "version": "1.0",
+   "manifest_version": 3,
+   "permissions": [
+      "contextMenus",
+      "tabs"
+   ],
+   "background": {
+      "service_worker": "open-in-window-bg.js"
+   },
+   "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+   }
+}
