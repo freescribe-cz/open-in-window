@@ -67,18 +67,7 @@ async function rebuildSubmenu() {
    chrome.contextMenus.refresh?.();
 }
 
-// Create root when installed (keeps installer flow)
-chrome.runtime.onInstalled.addListener(() => {
-   chrome.contextMenus.create({
-      id: ROOT_ID,
-      title: "Open link in another window",
-      contexts: ["link"]
-   }, ignoreLastError);
-   // build children right away
-   rebuildSubmenu();
-});
-
-// Also build at startup (after extension reloads)
+// Build at startup (after extension reloads)
 // NOTE: service worker restarts => state lost; removeAll ensures no stale menu items remain
 async function startupInit() {
   // remove anything this extension previously created
