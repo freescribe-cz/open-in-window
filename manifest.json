@@ -1,11 +1,12 @@
 {
    "name": "Open Link In Another Window",
-   "description": "Open links in a chosen window from the link context menu",
-   "version": "1.0",
+   "description": "Open links in a window that you select from the link context menu",
+   "version": "1.1",
    "manifest_version": 3,
    "permissions": [
       "contextMenus",
-      "tabs"
+      "tabs",
+      "windows"
    ],
    "background": {
       "service_worker": "open-in-window-bg.js"

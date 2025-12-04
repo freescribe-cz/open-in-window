@@ -5,7 +5,7 @@ function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + "…" :
 function ignoreLastError() { void chrome.runtime.lastError; }
 
 async function rebuildSubmenu() {
-   // remove old children
+   // Remove old children we created (best-effort)
    for (const id of childIds) chrome.contextMenus.remove(id, ignoreLastError);
    childIds.clear();
 
@@ -67,19 +67,38 @@ async function rebuildSubmenu() {
    chrome.contextMenus.refresh?.();
 }
 
-// Create root once
+// Create root when installed (keeps installer flow)
 chrome.runtime.onInstalled.addListener(() => {
    chrome.contextMenus.create({
       id: ROOT_ID,
       title: "Open link in another window",
       contexts: ["link"]
    }, ignoreLastError);
+   // build children right away
    rebuildSubmenu();
 });
 
 // Also build at startup (after extension reloads)
-chrome.runtime.onStartup?.addListener?.(rebuildSubmenu);
-rebuildSubmenu();
+// NOTE: service worker restarts => state lost; removeAll ensures no stale menu items remain
+async function startupInit() {
+  // remove anything this extension previously created
+  chrome.contextMenus.removeAll(ignoreLastError);
+
+  // recreate root
+  chrome.contextMenus.create({
+    id: ROOT_ID,
+    title: "Open link in another window",
+    contexts: ["link"]
+  }, ignoreLastError);
+
+  // then build children from current windows
+  await rebuildSubmenu();
+}
+
+// wire it up
+chrome.runtime.onInstalled.addListener(startupInit);
+chrome.runtime.onStartup?.addListener?.(startupInit);
+startupInit();
 
 // Keep it in sync with window changes
 chrome.windows.onCreated.addListener(rebuildSubmenu);
