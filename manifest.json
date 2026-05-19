@@ -1,7 +1,7 @@
 {
    "name": "Open Link In Another Window",
    "description": "Open a link in a selected Chrome window from the link context menu or with Shift+click.",
-   "version": "1.2",
+   "version": "2.0",
    "manifest_version": 3,
    "permissions": [
       "contextMenus",
