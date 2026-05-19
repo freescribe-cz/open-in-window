@@ -1,7 +1,7 @@
 {
    "name": "Open Link In Another Window",
-   "description": "Open a link in a window you select from the link context menu",
-   "version": "1.1",
+   "description": "Open a link in a selected Chrome window from the link context menu or with Shift+click.",
+   "version": "1.2",
    "manifest_version": 3,
    "permissions": [
       "contextMenus",
@@ -10,6 +10,17 @@
    "background": {
       "service_worker": "open-in-window-bg.js"
    },
+   "content_scripts": [
+      {
+         "matches": [
+            "<all_urls>"
+         ],
+         "js": [
+            "shift-click-picker.js"
+         ],
+         "run_at": "document_start"
+      }
+   ],
    "icons": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
