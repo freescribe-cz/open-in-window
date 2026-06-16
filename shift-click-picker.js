@@ -34,7 +34,7 @@
       return target?.closest?.("a[href]") || null;
    }
 
-   function fitToViewport(x, y, width = 320, height = 420) {
+   function fitToViewport(x, y, width = 280, height = 330) {
       const margin = 12;
       return {
          left: Math.max(margin, Math.min(x, window.innerWidth - width - margin)),
@@ -42,21 +42,46 @@
       };
    }
 
-   function createButton(label, sublabel, onClick) {
+   function createIcon(iconUrl, fallbackText = "") {
+      const icon = document.createElement("span");
+      icon.className = "choice-icon";
+      icon.setAttribute("aria-hidden", "true");
+
+      if (iconUrl) {
+         icon.classList.add("has-image");
+         const image = document.createElement("img");
+         image.alt = "";
+         image.decoding = "async";
+         image.referrerPolicy = "no-referrer";
+         image.src = iconUrl;
+         image.addEventListener("error", () => {
+            icon.classList.remove("has-image");
+            image.remove();
+         });
+         icon.appendChild(image);
+      } else if (fallbackText) {
+         icon.textContent = fallbackText;
+      }
+
+      return icon;
+   }
+
+   function createButton(label, iconUrl, metaText, onClick, fallbackText = "") {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "choice";
+      button.appendChild(createIcon(iconUrl, fallbackText));
 
       const main = document.createElement("span");
       main.className = "choice-main";
       main.textContent = label;
       button.appendChild(main);
 
-      if (sublabel) {
-         const secondary = document.createElement("span");
-         secondary.className = "choice-secondary";
-         secondary.textContent = sublabel;
-         button.appendChild(secondary);
+      if (metaText) {
+         const meta = document.createElement("span");
+         meta.className = "choice-meta";
+         meta.textContent = metaText;
+         button.appendChild(meta);
       }
 
       button.addEventListener("click", onClick);
@@ -106,60 +131,61 @@
             left: ${position.left}px;
             top: ${position.top}px;
             z-index: 2147483647;
-            width: 320px;
+            width: 280px;
             max-width: calc(100vw - 24px);
             box-sizing: border-box;
-            padding: 10px;
-            border: 1px solid rgba(128, 128, 128, 0.35);
-            border-radius: 14px;
+            padding: 4px;
+            border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+            border-radius: 8px;
             background: Canvas;
             color: CanvasText;
-            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+            box-shadow:
+               0 8px 20px rgba(0, 0, 0, 0.14),
+               0 1px 3px rgba(0, 0, 0, 0.12);
          }
 
          .title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin: 0 0 8px;
-            font-size: 13px;
-            font-weight: 700;
-         }
-
-         .close {
-            appearance: none;
-            border: 0;
-            border-radius: 999px;
-            background: transparent;
-            color: inherit;
-            cursor: pointer;
-            font: inherit;
-            width: 26px;
-            height: 26px;
-         }
-
-         .close:hover,
-         .choice:hover {
-            background: color-mix(in srgb, CanvasText 10%, transparent);
+            box-sizing: border-box;
+            margin: -4px -4px 3px;
+            padding: 9px 12px 7px;
+            border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+            border-radius: 7px 7px 0 0;
+            background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: color-mix(in srgb, CanvasText 84%, transparent);
+            font-size: 12.5px;
+            font-weight: 650;
+            letter-spacing: 0;
          }
 
          .choices {
             display: grid;
-            gap: 6px;
-            max-height: 330px;
+            gap: 1px;
+            max-height: 288px;
             overflow: auto;
+            overscroll-behavior: contain;
+         }
+
+         .separator {
+            height: 0;
+            margin: 3px 4px 2px;
+            border-top: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
          }
 
          .choice {
             appearance: none;
             display: grid;
-            gap: 2px;
+            grid-template-columns: 18px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
             width: 100%;
+            min-height: 30px;
             box-sizing: border-box;
-            padding: 9px 10px;
+            padding: 5px 8px;
             border: 0;
-            border-radius: 10px;
+            border-radius: 5px;
             background: transparent;
             color: inherit;
             cursor: pointer;
@@ -167,35 +193,85 @@
             font: inherit;
          }
 
+         .choice:hover {
+            background: color-mix(in srgb, Highlight 16%, transparent);
+         }
+
+         .choice:active {
+            background: color-mix(in srgb, Highlight 24%, transparent);
+         }
+
          .choice:disabled {
             cursor: wait;
             opacity: 0.55;
          }
 
-         .choice:focus-visible,
-         .close:focus-visible {
-            outline: 2px solid Highlight;
-            outline-offset: 2px;
+         .choice:focus-visible {
+            outline: 2px solid color-mix(in srgb, Highlight 76%, transparent);
+            outline-offset: -2px;
+         }
+
+         .choice-icon {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            color: color-mix(in srgb, CanvasText 70%, transparent);
+            font-size: 14px;
+            line-height: 1;
+            font-weight: 500;
+         }
+
+         .choice-icon::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            background: color-mix(in srgb, CanvasText 24%, transparent);
+         }
+
+         .choice-icon:not(:empty)::before,
+         .choice-icon.has-image::before {
+            display: none;
+         }
+
+         .choice-icon img {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            object-fit: contain;
          }
 
          .choice-main {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            font-size: 13px;
-            font-weight: 650;
+            font-size: 12.5px;
+            font-weight: 500;
+            letter-spacing: 0;
          }
 
-         .choice-secondary,
+         .choice-meta {
+            justify-self: end;
+            min-width: max-content;
+            color: color-mix(in srgb, CanvasText 52%, transparent);
+            font-size: 12px;
+            font-weight: 450;
+            letter-spacing: 0;
+            white-space: nowrap;
+         }
+
          .note,
          .error {
-            font-size: 12px;
+            font-size: 12.5px;
             opacity: 0.72;
          }
 
          .note,
          .error {
-            padding: 8px 10px;
+            padding: 7px 8px;
          }
 
          .error {
@@ -213,15 +289,7 @@
 
       const title = document.createElement("div");
       title.className = "title";
-      title.textContent = "Open link in…";
-
-      const close = document.createElement("button");
-      close.type = "button";
-      close.className = "close";
-      close.setAttribute("aria-label", "Close");
-      close.textContent = "×";
-      close.addEventListener("click", removePicker);
-      title.appendChild(close);
+      title.textContent = "Open the link in...";
 
       const choicesBox = document.createElement("div");
       choicesBox.className = "choices";
@@ -238,33 +306,35 @@
          choicesBox.appendChild(message);
       }
 
-      function addOpenButton(label, sublabel, target, windowId) {
-         choicesBox.appendChild(createButton(label, sublabel, () => {
+      function addOpenButton(label, iconUrl, metaText, target, windowId, fallbackText = "") {
+         choicesBox.appendChild(createButton(label, iconUrl, metaText, () => {
             choicesBox.querySelectorAll("button").forEach(button => button.disabled = true);
             openChoice(url, target, windowId)
                .then(removePicker)
                .catch(showError);
-         }));
+         }, fallbackText));
       }
 
       choicesBox.textContent = "";
 
       if (choicesResponse.windows?.length) {
          for (const win of choicesResponse.windows) {
-            const sublabel = `${win.tabCount} tab${win.tabCount === 1 ? "" : "s"}${win.incognito ? " — Incognito" : ""}`;
-            addOpenButton(win.title || `Window ${win.id}`, sublabel, "window", win.id);
+            const tabCount = `${win.tabCount} tab${win.tabCount === 1 ? "" : "s"}`;
+            addOpenButton(win.title || `Window ${win.id}`, win.favIconUrl, tabCount, "window", win.id);
          }
       } else {
          const note = document.createElement("div");
          note.className = "note";
-         note.textContent = choicesResponse.hiddenIncognitoCount > 0
-            ? "No available regular windows. Incognito windows are hidden unless the extension is enabled in Incognito."
-            : "No other windows are currently open.";
+         note.textContent = "No other windows";
          choicesBox.appendChild(note);
       }
 
       // Keep New window last as the fallback option.
-      addOpenButton("New window", "Open this link in a fresh Chrome window", "new-window");
+      const separator = document.createElement("div");
+      separator.className = "separator";
+      separator.setAttribute("role", "separator");
+      choicesBox.appendChild(separator);
+      addOpenButton("New window", "", "", "new-window", undefined, "+");
    }
 
    async function handleShiftClick(url, x, y) {
