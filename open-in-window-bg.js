@@ -1,8 +1,16 @@
 const ROOT_ID = "open-in-another-window";
+const MAX_TAB_TITLE_LENGTH = 60;
+const INCOGNITO_INDICATOR = " · Incognito";
 let childIds = new Set();
 
 function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + "…" : s; }
 function ignoreLastError() { void chrome.runtime.lastError; }
+
+function formatTabTitle(title, incognito) {
+   if (!incognito) return truncate(title, MAX_TAB_TITLE_LENGTH);
+
+   return `${truncate(title, MAX_TAB_TITLE_LENGTH - INCOGNITO_INDICATOR.length)}${INCOGNITO_INDICATOR}`;
+}
 
 async function isAllowedIncognitoAccess() {
    return new Promise(resolve => chrome.extension.isAllowedIncognitoAccess(resolve));
@@ -32,14 +40,17 @@ async function getWindowChoices() {
    return {
       windows: showable.map(w => {
          const active = (w.tabs || []).find(t => t.active);
-         const title = truncate(active?.title || `Window ${w.id}`, 60);
+         const baseTitle = active?.title || `Window ${w.id}`;
+         const incognito = Boolean(w.incognito);
+         const title = formatTabTitle(baseTitle, incognito);
          const count = w.tabs?.length ?? 0;
          return {
             id: w.id,
             title,
+            baseTitle,
             favIconUrl: active?.favIconUrl || "",
             tabCount: count,
-            incognito: Boolean(w.incognito)
+            incognito
          };
       }),
       hiddenIncognitoCount: hiddenIncognito.length
@@ -84,7 +95,7 @@ async function rebuildSubmenu() {
       chrome.contextMenus.create({
          id,
          parentId: ROOT_ID,
-         title: `${w.title} (${w.tabCount} tabs)${w.incognito ? " — Incognito" : ""}`,
+         title: `${w.title} (${w.tabCount} tabs)`,
          contexts: ["link"]
       }, ignoreLastError);
       childIds.add(id);

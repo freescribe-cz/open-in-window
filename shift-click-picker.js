@@ -66,7 +66,7 @@
       return icon;
    }
 
-   function createButton(label, iconUrl, metaText, onClick, fallbackText = "") {
+   function createButton(label, iconUrl, metaText, onClick, fallbackText = "", incognito = false) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "choice";
@@ -74,7 +74,18 @@
 
       const main = document.createElement("span");
       main.className = "choice-main";
-      main.textContent = label;
+      const labelText = document.createElement("span");
+      labelText.className = "choice-label";
+      labelText.textContent = label;
+      main.appendChild(labelText);
+
+      if (incognito) {
+         const incognitoText = document.createElement("span");
+         incognitoText.className = "choice-incognito";
+         incognitoText.textContent = "· Incognito";
+         main.appendChild(incognitoText);
+      }
+
       button.appendChild(main);
 
       if (metaText) {
@@ -245,12 +256,27 @@
          }
 
          .choice-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
             overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
             font-size: 12.5px;
             font-weight: 500;
             letter-spacing: 0;
+         }
+
+         .choice-label {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+         }
+
+         .choice-incognito {
+            flex: 0 0 auto;
+            color: color-mix(in srgb, CanvasText 62%, transparent);
          }
 
          .choice-meta {
@@ -306,13 +332,13 @@
          choicesBox.appendChild(message);
       }
 
-      function addOpenButton(label, iconUrl, metaText, target, windowId, fallbackText = "") {
+      function addOpenButton(label, iconUrl, metaText, target, windowId, fallbackText = "", incognito = false) {
          choicesBox.appendChild(createButton(label, iconUrl, metaText, () => {
             choicesBox.querySelectorAll("button").forEach(button => button.disabled = true);
             openChoice(url, target, windowId)
                .then(removePicker)
                .catch(showError);
-         }, fallbackText));
+         }, fallbackText, incognito));
       }
 
       choicesBox.textContent = "";
@@ -320,7 +346,7 @@
       if (choicesResponse.windows?.length) {
          for (const win of choicesResponse.windows) {
             const tabCount = `${win.tabCount} tab${win.tabCount === 1 ? "" : "s"}`;
-            addOpenButton(win.title || `Window ${win.id}`, win.favIconUrl, tabCount, "window", win.id);
+            addOpenButton(win.baseTitle || win.title || `Window ${win.id}`, win.favIconUrl, tabCount, "window", win.id, "", Boolean(win.incognito));
          }
       } else {
          const note = document.createElement("div");
