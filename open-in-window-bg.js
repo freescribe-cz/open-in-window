@@ -1,5 +1,4 @@
 const ROOT_ID = "open-in-another-window";
-const NEW_WINDOW_ID = "new-window";
 let childIds = new Set();
 
 function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + "…" : s; }
@@ -38,6 +37,7 @@ async function getWindowChoices() {
          return {
             id: w.id,
             title,
+            favIconUrl: active?.favIconUrl || "",
             tabCount: count,
             incognito: Boolean(w.incognito)
          };
@@ -90,15 +90,6 @@ async function rebuildSubmenu() {
       childIds.add(id);
    }
 
-   // Keep New window last as the fallback option.
-   chrome.contextMenus.create({
-      id: NEW_WINDOW_ID,
-      parentId: ROOT_ID,
-      title: "New window",
-      contexts: ["link"]
-   }, ignoreLastError);
-   childIds.add(NEW_WINDOW_ID);
-
    chrome.contextMenus.refresh?.();
 }
 
@@ -137,10 +128,6 @@ chrome.tabs.onAttached.addListener(rebuildSubmenu);
 chrome.contextMenus.onClicked.addListener(async (info) => {
    if (!info.linkUrl) return;
    const id = String(info.menuItemId || "");
-   if (id === NEW_WINDOW_ID) {
-      await openLinkInNewWindow(info.linkUrl);
-      return;
-   }
    if (id.startsWith("win-")) {
       const targetId = Number(id.slice(4));
       try {
